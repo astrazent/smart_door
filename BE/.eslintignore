@@ -1,0 +1,11 @@
+# Bỏ qua thư mục thư viện
+node_modules/
+
+# Bỏ qua thư mục build
+dist/
+build/
+
+# Bỏ qua file cấu hình, log
+*.min.js
+*.config.js
+*.log

@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+    mariadb2:
+        image: mariadb:latest
+        container_name: smart_lock_container
+        restart: always
+        environment:
+            - MYSQL_ROOT_PASSWORD=55558
+            - MYSQL_DATABASE=smart_lock
+        ports:
+            - '55558:3306'
+        volumes:
+            - mariadb_data_sl:/var/lib/mysql
+        healthcheck:
+            test:
+                [
+                    'CMD',
+                    'mysqladmin',
+                    '-uroot',
+                    '-p55558',
+                    'ping',
+                    '-h',
+                    'localhost',
+                ]
+            interval: 10s
+            retries: 5
+            start_period: 10s
+            timeout: 5s
+
+volumes:
+    mariadb_data_sl:

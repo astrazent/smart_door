@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "bradlc.vscode-tailwindcss", 
+        "heybourn.headwind", 
+        "esbenp.prettier-vscode", 
+        "dbaeumer.vscode-eslint", 
+        "dsznajder.es7-react-js-snippets", 
+        "steoates.autoimport", 
+        "christian-kohler.path-intellisense", 
+        "naumovs.color-highlight", 
+        "formulahendry.auto-rename-tag", 
+        "mrmlnc.vscode-scss" 
+    ],
+    "unwantedRecommendations": [
+        "some.deprecated-extension" 
+    ]
+}

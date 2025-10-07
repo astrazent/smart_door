@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "PKief.material-icon-theme",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "johnpapa.vscode-peacock",
+        "formulahendry.auto-rename-tag",
+        "yzhang.markdown-all-in-one",
+        "redhat.vscode-yaml",
+        "eamodio.gitlens",
+        "akosbalasko.vscode-pets",
+        "oderwat.indent-rainbow",
+        "xabikos.javascriptsnippets",
+        "usernamehw.errorlens",
+        "inferrinizzard.prettier-sql-vscode"
+    ]
+}
