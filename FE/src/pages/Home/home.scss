@@ -1,0 +1,22 @@
+.home-container {
+    text-align: center;
+}
+
+.door-status {
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    color: white;
+}
+
+.door-status.locked {
+    background-color: #dc3545; /* Red for locked */
+}
+
+.door-status.unlocked {
+    background-color: #28a745; /* Green for unlocked */
+}
+
+.controls {
+    margin-top: 20px;
+}
