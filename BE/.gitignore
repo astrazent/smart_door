@@ -27,3 +27,4 @@ yarn-error.log*
 
 logs
 .env
+rmc.js

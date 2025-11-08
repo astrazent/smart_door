@@ -4,72 +4,70 @@ import cookieParser from 'cookie-parser'
 import exitHook from 'async-exit-hook'
 import { createConnection, closeConnection } from '~/config/mysql.js'
 import { env } from '~/config/environment.js'
-import { APIs_V1 } from '~/routes/index.js'
-import { APIs_V2 } from '~/routes/index.js'
-import { errorHandlingMiddleware } from './middlewares/errorHandling'
+import { APIs_V1, APIs_V2 } from '~/routes/index.js'
+import { errorHandlingMiddleware } from './middlewares/errorHandling.js'
+import getPort from 'get-port'
 
-const START_SERVER = () => {
-    const app = express()
+const APP_PORT = parseInt(env.APP_PORT) || 2000
 
-    
-    app.use(
-        cors({
-            origin: 'http://localhost', 
-            methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-            allowedHeaders: ['Content-Type', 'Authorization'], 
-            credentials: true, 
-        })
-    )
+const fallbackPorts = Array.from(
+    { length: 5000 - 2000 + 1 },
+    (_, i) => 2000 + i
+)
 
-    
-    app.use(cookieParser())
+const portsToTry = [APP_PORT, ...fallbackPorts.filter(p => p !== APP_PORT)]
 
-    
-    app.use(express.json()) 
-    app.use(express.urlencoded({ extended: true })) 
+let serverInstance
 
-    
-    app.use('/v1', APIs_V1)
-    app.use('/v2', APIs_V2)
+const START_SERVER = async () => {
+    try {
+        const port = await getPort({ port: portsToTry })
+        console.log('Server chạy trên port:', port)
 
-    
-    app.use(errorHandlingMiddleware)
+        const app = express()
 
-    
-    const server = app.listen(env.APP_PORT, env.APP_HOST, () => {
-        console.log(
-            `3. Hi ${env.AUTHOR}, Back-end Server is running successfully at Host: ${env.APP_HOST} and Port: ${env.APP_PORT}`
+        app.use(
+            cors({
+                origin: env.FE_BASE_URL,
+                methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+                allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+                credentials: true,
+            })
         )
-    })
+        app.use(cookieParser())
+        app.use(express.json())
+        app.use(express.urlencoded({ extended: true }))
 
-    
-    exitHook(() => {
-        console.log('4. Server is shutting down...')
-        closeConnection() 
-        console.log('5. Disconnected from MySQL Database')
-    })
+        app.use('/v1', APIs_V1)
+        app.use('/v2', APIs_V2)
+        app.use(errorHandlingMiddleware)
 
-    return server 
+        serverInstance = app.listen(port, env.APP_HOST, () => {
+            console.log(`Server running at Host: ${env.APP_HOST} Port: ${port}`)
+        })
+
+        exitHook(() => {
+            console.log('Server is shutting down...')
+            if (serverInstance) {
+                serverInstance.close(() => {
+                    console.log('HTTP server closed.')
+                })
+            }
+            closeConnection()
+            console.log('Disconnected from MySQL Database')
+        })
+    } catch (err) {
+        console.error('Failed to start server:', err)
+        process.exit(1)
+    }
 }
 
-// Kết nối Database trước khi start Server
-createConnection() 
-    .then(() => console.log('1. Connected to MySQL Database!'))
-    .then(() => console.log('2. Starting server...'))
+createConnection()
+    .then(() => console.log('Connected to MySQL Database!'))
     .then(() => START_SERVER())
     .catch(error => {
-        console.error(error)
-        process.exit(0)
+        console.error('Failed to start server:', error)
+        process.exit(1)
     })
 
-/**
- * MỤC ĐÍCH CHÍNH CỦA EXPORT SERVER:
- * - Cho phép testing: Import server để viết unit/integration tests
- * - Tái sử dụng: Có thể khởi động server từ nhiều file khác nhau
- * - Linh hoạt: Tuỳ chỉnh config khi khởi động (port, host, options)
- * - Microservices: Khởi tạo nhiều server instance nếu cần
- *
- * 🚨 Lưu ý: Server auto-start khi import - phù hợp production
- * nhưng cần refactor nếu muốn testing linh hoạt hơn
- */
 export default START_SERVER

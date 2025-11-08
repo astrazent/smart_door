@@ -126,14 +126,35 @@ void setup()
     // --- KHỞI TẠO WIFI & WEB SERVER API ---
     WiFi.begin(ssid, password);
     Serial.print("Dang ket noi Wi-Fi...");
+    
+    // --- BỔ SUNG: HIỂN THỊ THÔNG BÁO KẾT NỐI WIFI LÊN LCD ---
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Dang ket noi");
+    lcd.setCursor(0, 1);
+    lcd.print("Wi-Fi...");
+    // --- KẾT THÚC BỔ SUNG ---
+
     while (WiFi.status() != WL_CONNECTED)
     {
         delay(500);
         Serial.print(".");
     }
+
     Serial.println("\nDa ket noi!");
     Serial.print("Dia chi IP: ");
     Serial.println(WiFi.localIP());
+
+    // --- BỔ SUNG: HIỂN THỊ ĐÃ KẾT NỐI VÀ IP LÊN LCD ---
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Da ket noi!");
+    lcd.setCursor(0, 1);
+    lcd.print(WiFi.localIP());
+    delay(2000); // Giữ thông báo trong 2 giây
+    displayInitialMessage(); // Quay lại màn hình chờ quét thẻ
+    // --- KẾT THÚC BỔ SUNG ---
+
 
     // --- ĐỊNH NGHĨA CÁC API ENDPOINTS ---
     server.on("/api/status", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -184,9 +205,6 @@ void setup()
     server.begin();
 }
 
-// ==========================================================
-// == SỬ DỤNG LẠI HÀM LOOP() CHÍNH XÁC VÀ THÔNG MINH NHẤT ===
-// ==========================================================
 void loop()
 {
     if (doorIsOpen)

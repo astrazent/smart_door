@@ -8,6 +8,7 @@ services:
         environment:
             - MYSQL_ROOT_PASSWORD=55558
             - MYSQL_DATABASE=smart_lock
+            - TZ=Asia/Ho_Chi_Minh
         ports:
             - '55558:3306'
         volumes:

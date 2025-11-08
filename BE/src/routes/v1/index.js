@@ -1,28 +1,21 @@
-/**
- * Folder routes/v1:
- * Chức năng:
- *  - Chứa định nghĩa các endpoint API phiên bản 1
- *  - Mapping URL -> controller tương ứng
- * Tạo file mới: mỗi entity/chức năng có file route riêng (userRoutes.js, productRoutes.js, orderRoutes.js...)
- */
 import express from 'express'
-import boardRoutes from './boardRoute.js'
+import historyRoute from './historyRoute'
+import cardRoute from './cardRoute'
+import doorRoute from './doorRoute'
+import userRoute from './userRoute'
+import espRoute from './espRoute'
+import attendanceRoute from './attendanceRoute'
 import { StatusCodes } from 'http-status-codes'
-// import columnRoutes from './columnRoute.js'
-// import cardRoutes from './cardRoute.js'
-
 const Router = express.Router()
 
-// Check APIs v1 status
 Router.get('/ping', (req, res) => {
     res.status(StatusCodes.OK).json({ message: 'APIs V1 are ready to use.' })
 })
 
-/**
- * Tổng hợp tất cả routes v1
- */
-Router.use('/boards', boardRoutes)
-// Router.use('/columns', columnRoutes)
-// Router.use('/cards', cardRoutes)
-
+Router.use('/history', historyRoute)
+Router.use('/card', cardRoute)
+Router.use('/door', doorRoute)
+Router.use('/user', userRoute)
+Router.use('/esp', espRoute)
+Router.use('/attendance', attendanceRoute)
 export const APIs_V1 = Router

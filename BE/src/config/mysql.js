@@ -1,6 +1,3 @@
-/**
- * Chức năng: Cấu hình kết nối mySQL (URL, options, khởi tạo connection)
- */
 import mysql from 'mysql2/promise'
 import { env } from './environment.js'
 

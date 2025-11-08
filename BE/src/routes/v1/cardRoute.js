@@ -1,20 +1,20 @@
 import express from 'express'
-import { CardController } from '~/controllers/cardController'
+import { cardController } from '~/controllers/cardController.js'
 
-const Router = express.Router()
+const router = express.Router()
 
-// /v1/cards
-Router.route('/')
-    .get(CardController.getCards) 
-    .post(CardController.createCard) 
+router.post('/', cardController.createCard)
 
-// /v1/cards/:id
-Router.route('/:id')
-    .get(CardController.getCard) 
-    .put(CardController.updateCard) 
-    .delete(CardController.deleteCard) 
+router.get('/', cardController.listCards)
 
-// /v1/cards/:id/move
-Router.route('/:id/move').put(CardController.moveCard) 
+router.get('/card_user', cardController.listCardsUser)
 
-export default Router
+router.get('/:id', cardController.getCardById)
+
+router.get('/uid/:uid', cardController.getCardByUid)
+
+router.patch('/:id', cardController.updateCard)
+
+router.delete('/:id', cardController.deleteCard)
+
+export default router
