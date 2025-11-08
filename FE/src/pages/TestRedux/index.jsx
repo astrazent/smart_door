@@ -1,36 +1,111 @@
-import React from 'react'
+// src/pages/TestReduxCards.jsx
+import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { increment, decrement, reset } from '~/redux/slices/counterSlice'
+import {
+    setCards,
+    addCard,
+    updateCard,
+    removeCard,
+    clearCards,
+} from '~/redux/reducers/cardReducer'
 
-export default function TestRedux() {
-    const count = useSelector(state => state.counter.value)
+const TestReduxCards = () => {
     const dispatch = useDispatch()
+    const cards = useSelector(state => state.cards.cards)
+
+    const [newCardName, setNewCardName] = useState('Card Mới')
+    const [updateId, setUpdateId] = useState('')
+    const [updateName, setUpdateName] = useState('Card Cập Nhật')
+    const [removeId, setRemoveId] = useState('')
 
     return (
-        <div className="flex flex-col items-center gap-4 mt-10">
-            <h2 className="text-2xl font-semibold">
-                Giá trị hiện tại: {count}
-            </h2>
-            <div className="flex gap-3">
+        <div style={{ padding: '20px', fontFamily: 'Arial' }}>
+            <h2>Redux Cards Demo</h2>
+
+            {/* Danh sách thẻ */}
+            <div>
+                <h3>Danh sách thẻ:</h3>
+                {cards.length === 0 ? (
+                    <p>Chưa có thẻ nào</p>
+                ) : (
+                    <ul>
+                        {cards.map(card => (
+                            <li key={card.id}>
+                                {card.id} - {card.name}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+
+            {/* Thêm thẻ mới */}
+            <div>
+                <h3>Thêm thẻ:</h3>
+                <input
+                    type="text"
+                    value={newCardName}
+                    onChange={e => setNewCardName(e.target.value)}
+                    placeholder="Tên thẻ mới"
+                />
                 <button
-                    onClick={() => dispatch(increment())}
-                    className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+                    onClick={() =>
+                        dispatch(
+                            addCard({
+                                id: Date.now().toString(),
+                                name: newCardName,
+                            })
+                        )
+                    }
                 >
-                    + Tăng
+                    Thêm
                 </button>
+            </div>
+
+            {/* Cập nhật thẻ */}
+            <div>
+                <h3>Cập nhật thẻ:</h3>
+                <input
+                    type="text"
+                    value={updateId}
+                    onChange={e => setUpdateId(e.target.value)}
+                    placeholder="ID thẻ cần cập nhật"
+                />
+                <input
+                    type="text"
+                    value={updateName}
+                    onChange={e => setUpdateName(e.target.value)}
+                    placeholder="Tên mới"
+                />
                 <button
-                    onClick={() => dispatch(decrement())}
-                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    onClick={() =>
+                        dispatch(updateCard({ id: updateId, name: updateName }))
+                    }
                 >
-                    - Giảm
+                    Cập nhật
                 </button>
-                <button
-                    onClick={() => dispatch(reset())}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
-                >
-                    Đặt lại
+            </div>
+
+            {/* Xóa thẻ */}
+            <div>
+                <h3>Xóa thẻ:</h3>
+                <input
+                    type="text"
+                    value={removeId}
+                    onChange={e => setRemoveId(e.target.value)}
+                    placeholder="ID thẻ cần xóa"
+                />
+                <button onClick={() => dispatch(removeCard(removeId))}>
+                    Xóa
                 </button>
+            </div>
+
+            {/* Xóa tất cả thẻ */}
+            <div>
+                <h3>Clear tất cả thẻ:</h3>
+                <button onClick={() => dispatch(clearCards())}>Clear</button>
             </div>
         </div>
     )
 }
+
+export default TestReduxCards

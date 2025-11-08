@@ -1,19 +1,19 @@
-import React, { createContext, useState, useContext, useCallback } from 'react';
-import Alert from '~/components/Alert';
+import React, { createContext, useState, useContext, useCallback } from 'react'
+import Alert from '~/components/Alert'
 
-const AlertContext = createContext();
+const AlertContext = createContext()
 
 export const AlertProvider = ({ children }) => {
-    const [alert, setAlert] = useState(null);
+    const [alert, setAlert] = useState(null)
     const showAlert = useCallback((message, options = {}) => {
-        const { type = 'success', duration = 2000 } = options;
-        const id = new Date().getTime();
-        setAlert({ id, message, duration, type }); // Thêm 'type' vào state
-    }, []);
+        const { type = 'success', duration = 2000 } = options
+        const id = new Date().getTime()
+        setAlert({ id, message, duration, type }) // Thêm 'type' vào state
+    }, [])
 
     const closeAlert = () => {
-        setAlert(null);
-    };
+        setAlert(null)
+    }
 
     return (
         <AlertContext.Provider value={{ showAlert }}>
@@ -28,9 +28,9 @@ export const AlertProvider = ({ children }) => {
                 />
             )}
         </AlertContext.Provider>
-    );
-};
+    )
+}
 
 export const useAlert = () => {
-    return useContext(AlertContext);
-};
+    return useContext(AlertContext)
+}

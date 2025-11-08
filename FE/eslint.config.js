@@ -66,8 +66,6 @@ export default defineConfig([
             'no-warning-comments': 'off',
             'spaced-comment': 'off',
             'no-inline-comments': 'warn',
-            'no-comments': 'off', // không có sẵn, cần custom
-            'no-comment': 'warn', // thay thế tạm để bạn dễ grep code
             'no-restricted-syntax': [
                 'error',
                 {

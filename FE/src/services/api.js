@@ -1,16 +1,7 @@
 import axios from 'axios'
 
-const apiClient = axios.create({
-    baseURL: 'https://api.your-iot-system.com', // Thay thế bằng URL API của bạn
-    headers: {
-        'Content-Type': 'application/json',
-    },
+const api = axios.create({
+    baseURL: import.meta.env.VITE_API_BACKEND || 'http://localhost:8027/',
 })
 
-export const getDoorStatus = () => {
-    return apiClient.get('/door/status')
-}
-
-export const updateDoorStatus = status => {
-    return apiClient.post('/door/status', { status }) // status: 'lock' or 'unlock'
-}
+export default api
