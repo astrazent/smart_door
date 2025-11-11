@@ -35,7 +35,10 @@ const updateDoorService = async (id, payload) => {
 
     const updatedDoor = await DoorsModel.updateDoor(id, {
         ...payload,
-        server_domain: payload.server_domain !== undefined ? payload.server_domain : door.server_domain
+        server_domain:
+            payload.server_domain !== undefined
+                ? payload.server_domain
+                : door.server_domain,
     })
     return updatedDoor
 }

@@ -24,7 +24,9 @@ const DOORS_SCHEMA = Joi.object({
 
 const DoorsModel = {
     async createDoor(data) {
-        const { error, value } = DOORS_SCHEMA.validate(data, { abortEarly: false })
+        const { error, value } = DOORS_SCHEMA.validate(data, {
+            abortEarly: false,
+        })
         if (error) throw error
 
         const conn = getConnection()

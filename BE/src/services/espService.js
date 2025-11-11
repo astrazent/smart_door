@@ -1,5 +1,5 @@
 import { DoorsModel } from '~/models/doorModel'
-import { UsersModel } from '~/models/userModel' // nếu bạn có bảng users riêng
+import { UsersModel } from '~/models/userModel' 
 import ApiError from '~/utils/ApiError.js'
 import { StatusCodes } from 'http-status-codes'
 import { HistoryModel } from '~/models/historyModel'
@@ -11,11 +11,10 @@ const sendRequestToDoorServer = async (server_domain, action, payload = {}) => {
     if (!server_domain) {
         throw new ApiError(StatusCodes.BAD_REQUEST, 'Missing server_domain')
     }
-
-    const url = `http://${server_domain}/${action}`
-
+    
+    const url = `http://${server_domain}/api/${action}`
     try {
-        const res = await axios.post(url, payload, { timeout: 5000 }) // timeout 5s
+        const res = await axios.get(url, payload, { timeout: 5000 }) 
         return res.data
     } catch (err) {
         console.error('[ESP ERROR]', err.message)
@@ -23,23 +22,21 @@ const sendRequestToDoorServer = async (server_domain, action, payload = {}) => {
     }
 }
 
-/**
- * Tìm người dùng bằng UID RFID
- */
+
 const findUserByUID = async (uid, user = null) => {
     const foundUser = await UsersModel.findByUID(uid)
-    // Nếu muốn filter theo user id
+    
     if (user?.id && foundUser && foundUser.id !== user.id) return null
     return foundUser || null
 }
 const sanitizeName = (name) => {
-    // 1. Loại bỏ dấu tiếng Việt
+    
     let cleanName = removeAccents(name);
 
-    // 2. Loại bỏ tất cả ký tự không phải chữ cái hoặc số, giữ khoảng trắng
+    
     cleanName = cleanName.replace(/[^a-zA-Z0-9 ]/g, '');
 
-    // 3. Loại bỏ khoảng trắng thừa
+    
     cleanName = cleanName.replace(/\s+/g, ' ').trim();
 
     return cleanName;
@@ -48,7 +45,7 @@ const sanitizeName = (name) => {
 const cardListService = async (limit, offset) => {
     const cards = await CardsModel.listCardsESP(limit, offset);
 
-    // format toàn bộ name
+    
     const formattedCards = cards.map(card => ({
         ...card,
         name: sanitizeName(card.name)
@@ -57,9 +54,7 @@ const cardListService = async (limit, offset) => {
     return formattedCards;
 };
 
-/**
- * Mở cửa
- */
+
 const openDoorService = async (door_code, user = null) => {
     const door = await DoorsModel.getDoorByCode(door_code)
     if (!door) throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy cửa')
@@ -76,13 +71,10 @@ const openDoorService = async (door_code, user = null) => {
         user: user || null,
         action: 'OPEN'
     })
-    console.log("check");
     return formatResponse('success', 'Cửa đã được mở', door_code)
 }
 
-/**
- * Đóng cửa
- */
+
 const closeDoorService = async (door_code, user = null) => {
     const door = await DoorsModel.getDoorByCode(door_code)
     if (!door) throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy cửa')
@@ -103,20 +95,29 @@ const closeDoorService = async (door_code, user = null) => {
     return formatResponse('success', 'Cửa đã được đóng', door_code)
 }
 
-/**
- * Lấy trạng thái cửa hiện tại
- */
+
 const getDoorStatusService = async (door_code) => {
     const door = await DoorsModel.getDoorByCode(door_code)
     if (!door) throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy cửa')
 
-    const espResponse = await sendRequestToDoorServer(door.server_domain, 'status')
+    
+    const espPromise = sendRequestToDoorServer(door.server_domain, 'status')
+
+    
+    const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+            reject(new ApiError(StatusCodes.GATEWAY_TIMEOUT, `ESP server không phản hồi sau 2 giây (${door.server_domain})`))
+        }, 2000)
+    })
+
+    
+    const espResponse = await Promise.race([espPromise, timeoutPromise])
 
     if (espResponse.door_code !== door.door_code) {
         throw new ApiError(StatusCodes.CONFLICT, 'door_code trả về từ ESP không khớp với DB')
     }
 
-    // Cập nhật trực tiếp trạng thái cửa
+    
     const result = await HistoryModel.updateStatusAdmin({
         door_id: door.id,
         current_status: espResponse.status.toUpperCase()
@@ -130,6 +131,7 @@ const getDoorStatusService = async (door_code) => {
         current_status: espResponse.status.toUpperCase()
     })
 }
+
 const checkInDoorService = async (req) => {
     const { uid, door_code } = req.body
     if (!uid || !door_code) throw new ApiError(StatusCodes.BAD_REQUEST, 'Thiếu thông tin UID hoặc door_code')
@@ -197,6 +199,68 @@ const doorCloseService = async (req) => {
     return await HistoryModel.doorClose({ door, user })
 }
 
+const getNewCardService = async (door_code) => {
+    if (!door_code) throw new ApiError(StatusCodes.BAD_REQUEST, 'Thiếu thông tin door_code')
+
+    const door = await DoorsModel.getDoorByCode(door_code)
+    if (!door) throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy cửa với door_code này')
+
+    
+    const espPromise = sendRequestToDoorServer(door.server_domain, 'get-card-uid')
+
+    
+    const timeoutPromise = new Promise((resolve) => {
+        setTimeout(() => {
+            resolve({
+                status: 'error',
+                message: 'ESP server không phản hồi sau 10 giây',
+                uid: null,
+                door_code: door_code
+            })
+        }, 10000)
+    })
+
+    
+    const espResponse = await Promise.race([espPromise, timeoutPromise])
+
+    
+    if (espResponse.status === 'error') {
+        return espResponse
+    }
+
+    
+    if (!espResponse?.uid) {
+        throw new ApiError(StatusCodes.BAD_GATEWAY, 'ESP server không trả về UID')
+    }
+
+    return espResponse
+}
+
+const createNewCardService = async (payload) => {
+    const { card_uid, user_id } = payload
+
+    if (!card_uid) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Thiếu card_uid')
+    }
+
+    
+    const existed = await CardsModel.getCardByUid(card_uid)
+    if (existed) {
+        throw new ApiError(StatusCodes.CONFLICT, 'Thẻ đã tồn tại trong hệ thống')
+    }
+
+    
+    const cardData = {
+        card_uid,
+        user_id: user_id || null,
+        is_active: true, 
+        registered_at: new Date(),
+    }
+
+    const card = await CardsModel.createCard(cardData)
+    return card
+}
+
 const formatResponse = (status, message, door_code, extra = {}) => ({
     status,
     message,
@@ -216,5 +280,7 @@ export const espService = {
     openDoorService,
     closeDoorService,
     getDoorStatusService,
+    createNewCardService,
+    getNewCardService,
     formatResponse,
 }

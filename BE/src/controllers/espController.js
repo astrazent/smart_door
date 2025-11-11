@@ -62,7 +62,15 @@ const getCardListESP = async (req, res, next) => {
 const openDoor = async (req, res, next) => {
     try {
         const user = req.user
-        const data = await espService.openDoorService(DOOR_CODE, user)
+        const { door_code } = req.query
+
+        if (!door_code) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: 'Thiếu thông tin door_code',
+            })
+        }
+
+        const data = await espService.openDoorService(door_code, user)
         return res.status(StatusCodes.OK).json({
             message: 'Mở cửa thành công',
             data,
@@ -75,7 +83,15 @@ const openDoor = async (req, res, next) => {
 const closeDoor = async (req, res, next) => {
     try {
         const user = req.user
-        const data = await espService.closeDoorService(DOOR_CODE, user)
+        const { door_code } = req.query
+
+        if (!door_code) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: 'Thiếu thông tin door_code',
+            })
+        }
+
+        const data = await espService.closeDoorService(door_code, user)
         return res.status(StatusCodes.OK).json({
             message: 'Đóng cửa thành công',
             data,
@@ -87,10 +103,64 @@ const closeDoor = async (req, res, next) => {
 
 const getStatus = async (req, res, next) => {
     try {
-        const data = await espService.getDoorStatusService(DOOR_CODE)
+        const { door_code } = req.query
+
+        if (!door_code) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: 'Thiếu thông tin door_code',
+            })
+        }
+
+        const data = await espService.getDoorStatusService(door_code)
         return res.status(StatusCodes.OK).json({
             message: 'Lấy trạng thái cửa thành công',
             data,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const getNewCard = async (req, res, next) => {
+    try {
+        const { door_code } = req.query
+        if (!door_code) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                message: 'Thiếu thông tin door_code',
+            })
+        }
+
+        const data = await espService.getNewCardService(door_code)
+
+        return res.status(StatusCodes.OK).json(data)
+    } catch (error) {
+        next(error)
+    }
+}
+
+const saveNewCard = async (req, res, next) => {
+    try {
+        const { card_uid, user_id } = req.body
+
+        if (!card_uid) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                status: 'error',
+                message: 'Thiếu thông tin card_uid',
+                uid: null,
+                user_id: null,
+            })
+        }
+
+        const card = await espService.createNewCardService({
+            card_uid,
+            user_id,
+        })
+
+        return res.status(StatusCodes.OK).json({
+            status: 'success',
+            message: 'Đã tạo thẻ thành công',
+            uid: card.card_uid,
+            user_id: card.user_id,
         })
     } catch (error) {
         next(error)
@@ -163,4 +233,6 @@ export const espController = {
     openDoor,
     closeDoor,
     getStatus,
+    getNewCard,
+    saveNewCard,
 }

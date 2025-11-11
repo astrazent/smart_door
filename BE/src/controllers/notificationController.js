@@ -3,7 +3,9 @@ import { StatusCodes } from 'http-status-codes'
 
 const createNotification = async (req, res, next) => {
     try {
-        const data = await notificationService.createNotificationService(req.body)
+        const data = await notificationService.createNotificationService(
+            req.body
+        )
         return res.status(StatusCodes.CREATED).json({
             message: 'Tạo thông báo thành công',
             data,
@@ -15,7 +17,9 @@ const createNotification = async (req, res, next) => {
 
 const getNotificationById = async (req, res, next) => {
     try {
-        const data = await notificationService.getNotificationByIdService(req.params.id)
+        const data = await notificationService.getNotificationByIdService(
+            req.params.id
+        )
         return res.status(StatusCodes.OK).json({
             message: 'Lấy thông tin thông báo thành công',
             data,
@@ -42,7 +46,9 @@ const updateNotification = async (req, res, next) => {
 
 const deleteNotification = async (req, res, next) => {
     try {
-        const data = await notificationService.deleteNotificationService(req.params.id)
+        const data = await notificationService.deleteNotificationService(
+            req.params.id
+        )
         return res.status(StatusCodes.OK).json({
             message: 'Xóa thông báo thành công',
             data,
@@ -56,7 +62,10 @@ const listNotifications = async (req, res, next) => {
     try {
         const limit = parseInt(req.query.limit) || 50
         const offset = parseInt(req.query.offset) || 0
-        const data = await notificationService.listNotificationsService(limit, offset)
+        const data = await notificationService.listNotificationsService(
+            limit,
+            offset
+        )
         return res.status(StatusCodes.OK).json({
             message: 'Lấy danh sách thông báo thành công',
             data,

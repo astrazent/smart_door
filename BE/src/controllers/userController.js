@@ -19,7 +19,7 @@ const login = async (req, res, next) => {
         const { user, accessToken } = await userService.loginService(
             identifier,
             password
-        )  
+        )
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',

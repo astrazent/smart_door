@@ -38,8 +38,6 @@ const loginService = async (identifier, password) => {
             StatusCodes.UNAUTHORIZED,
             'Username hoặc email không tồn tại'
         )
-
-    // Kiểm tra role
     if (user.role !== 'admin') {
         throw new ApiError(
             StatusCodes.FORBIDDEN,

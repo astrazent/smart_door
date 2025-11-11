@@ -1,18 +1,19 @@
 import express from 'express'
 import { espController } from '~/controllers/espController'
-
+import { verifyAccessToken } from '~/utils/token'
 const router = express.Router()
 
-// ESP gửi UID RFID để xác thực
 router.get('/check-card', espController.checkCard)
 
-// Web gửi lệnh điều khiển cửa
 router.get('/door/open', espController.openDoor)
 
 router.get('/door/close', espController.closeDoor)
 
-// Web (hoặc admin) lấy trạng thái cửa mới nhất
 router.get('/door/status', espController.getStatus)
+
+router.get('/get-new-card', espController.getNewCard)
+
+router.post('/save-new-card', espController.saveNewCard)
 
 router.get('/get-card-esp', espController.getCardListESP)
 

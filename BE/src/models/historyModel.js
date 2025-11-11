@@ -9,7 +9,6 @@ const HISTORY_SCHEMA = Joi.object({
         'any.required': 'door_id là bắt buộc',
     }),
     user_id: Joi.number().integer().allow(null),
-    card_id: Joi.number().integer().allow(null),
     action: Joi.string().valid('OPEN', 'CLOSE', 'FAILED').required().messages({
         'any.only': 'Action phải là OPEN, CLOSE hoặc FAILED',
         'any.required': 'Action là bắt buộc',
@@ -33,12 +32,11 @@ const HistoryModel = {
 
         const conn = getConnection()
         const [result] = await conn.execute(
-            `INSERT INTO ${HISTORY_TABLE_NAME} (door_id, user_id, card_id, action, door_status, time, note)
-            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO ${HISTORY_TABLE_NAME} (door_id, user_id, action, door_status, time, note)
+            VALUES (?, ?, ?, ?, ?, ?)`,
             [
                 value.door_id,
                 value.user_id || null,
-                value.card_id || null,
                 value.action,
                 value.door_status,
                 value.time || new Date(),
@@ -60,10 +58,9 @@ const HistoryModel = {
     async listHistory(limit = 50, offset = 0) {
         const conn = getConnection()
         const [rows] = await conn.execute(
-            `SELECT h.*, u.full_name AS user_name, c.card_uid, d.name AS door_name
+            `SELECT h.*, u.full_name AS user_name, d.name AS door_name
             FROM ${HISTORY_TABLE_NAME} h
             LEFT JOIN users u ON h.user_id = u.id
-            LEFT JOIN cards c ON h.card_id = c.id
             LEFT JOIN doors d ON h.door_id = d.id
             ORDER BY h.time DESC
             LIMIT ? OFFSET ?`,
@@ -71,6 +68,7 @@ const HistoryModel = {
         )
         return rows
     },
+
     async listHistoryDoorUser(limit = 50, offset = 0) {
         const conn = getConnection()
         const [rows] = await conn.execute(
@@ -82,12 +80,11 @@ const HistoryModel = {
             h.note,
             u.full_name AS user_name,
             u.username,
-            c.card_uid,
+            u.role,
             d.name AS door_name,
             d.location
         FROM ${HISTORY_TABLE_NAME} h
         LEFT JOIN users u ON h.user_id = u.id
-        LEFT JOIN cards c ON h.card_id = c.id
         LEFT JOIN doors d ON h.door_id = d.id
         ORDER BY h.time DESC
         LIMIT ? OFFSET ?`,
@@ -131,7 +128,7 @@ const HistoryModel = {
 
             await conn.execute(
                 `INSERT INTO history (door_id, user_id, action, door_status, time, note)
-            VALUES (?, ?, ?, ?, NOW(), ?)`,
+                VALUES (?, ?, ?, ?, NOW(), ?)`,
                 [door_id, user?.id || null, action, current_status, note]
             )
 
@@ -140,10 +137,7 @@ const HistoryModel = {
         } catch (err) {
             await conn.rollback()
             console.error('[Transaction ERROR]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Cập nhật dữ liệu thất bại'
-            )
+            throw err
         }
     },
 
@@ -157,10 +151,7 @@ const HistoryModel = {
             return { success: result.affectedRows > 0 }
         } catch (err) {
             console.error('[Update Door Status ERROR]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Cập nhật trạng thái cửa thất bại'
-            )
+            throw err
         }
     },
 
@@ -176,22 +167,22 @@ const HistoryModel = {
 
             await conn.execute(
                 `UPDATE doors 
-            SET is_active = TRUE, current_status = 'OPENED', last_updated = NOW() 
-            WHERE id = ?`,
+                SET is_active = TRUE, current_status = 'OPENED', last_updated = NOW() 
+                WHERE id = ?`,
                 [door_id]
             )
 
             const noteAttendance = `${full_name} đã vào ${door_name}`
             await conn.execute(
                 `INSERT INTO attendance (user_id, door_id, check_in_time, note, status)
-            VALUES (?, ?, NOW(), ?, 'CHECKED_IN')`,
+                VALUES (?, ?, NOW(), ?, 'CHECKED_IN')`,
                 [user_id, door_id, noteAttendance]
             )
 
             const noteHistory = `${full_name} đã mở ${door_name}`
             await conn.execute(
                 `INSERT INTO history (door_id, user_id, action, door_status, time, note)
-            VALUES (?, ?, 'OPEN', 'OPENED', NOW(), ?)`,
+                VALUES (?, ?, 'OPEN', 'OPENED', NOW(), ?)`,
                 [door_id, user_id, noteHistory]
             )
 
@@ -200,10 +191,7 @@ const HistoryModel = {
         } catch (err) {
             await conn.rollback()
             console.error('[Transaction ERROR - checkInDoor]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Check-in cửa thất bại'
-            )
+            throw err
         }
     },
 
@@ -219,15 +207,15 @@ const HistoryModel = {
 
             await conn.execute(
                 `UPDATE doors 
-            SET is_active = FALSE, current_status = 'CLOSED', last_updated = NOW() 
-            WHERE id = ?`,
+                SET is_active = FALSE, current_status = 'CLOSED', last_updated = NOW() 
+                WHERE id = ?`,
                 [door_id]
             )
 
             const [rows] = await conn.execute(
                 `SELECT id FROM attendance 
-            WHERE user_id = ? AND door_id = ? AND status = 'CHECKED_IN'
-            ORDER BY check_in_time DESC LIMIT 1`,
+                WHERE user_id = ? AND door_id = ? AND status = 'CHECKED_IN'
+                ORDER BY check_in_time DESC LIMIT 1`,
                 [user_id, door_id]
             )
 
@@ -236,20 +224,16 @@ const HistoryModel = {
                 const noteAttendance = `${full_name} đã rời khỏi ${door_name}`
                 await conn.execute(
                     `UPDATE attendance 
-                SET check_out_time = NOW(), status = 'CHECKED_OUT', note = ?
-                WHERE id = ?`,
+                    SET check_out_time = NOW(), status = 'CHECKED_OUT', note = ?
+                    WHERE id = ?`,
                     [noteAttendance, attendance_id]
-                )
-            } else {
-                console.warn(
-                    `[checkOutDoor] Không tìm thấy bản ghi CHECKED_IN của user ${user_id}`
                 )
             }
 
-            const noteHistory = `${full_name} đã đóng ${door_name}`
+            const noteHistory = `Tự động đóng ${door_name}`
             await conn.execute(
                 `INSERT INTO history (door_id, user_id, action, door_status, time, note)
-            VALUES (?, ?, 'CLOSE', 'CLOSED', NOW(), ?)`,
+                VALUES (?, ?, 'CLOSE', 'CLOSED', NOW(), ?)`,
                 [door_id, user_id, noteHistory]
             )
 
@@ -258,12 +242,10 @@ const HistoryModel = {
         } catch (err) {
             await conn.rollback()
             console.error('[Transaction ERROR - checkOutDoor]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Check-out cửa thất bại'
-            )
+            throw err
         }
     },
+
     async checkInInvalid({ door, user }) {
         const conn = await getConnection()
         try {
@@ -271,22 +253,14 @@ const HistoryModel = {
 
             const door_id = door.id
             const user_id = user?.id || null
-            const full_name = user?.full_name || 'Người dùng không xác định'
+            const full_name = user?.full_name || 'Người dùng lạ'
             const door_name = door.name.toLowerCase()
 
             const noteHistory = `${full_name} đã check-in ${door_name} không thành công`
             await conn.execute(
                 `INSERT INTO history (door_id, user_id, action, door_status, time, note)
-            VALUES (?, ?, 'FAILED', 'CLOSED', NOW(), ?)`,
+                VALUES (?, ?, 'FAILED', 'CLOSED', NOW(), ?)`,
                 [door_id, user_id, noteHistory]
-            )
-
-            const title = 'Cảnh báo truy cập'
-            const message = `${full_name} đã check-in ${door_name} không thành công`
-            await conn.execute(
-                `INSERT INTO notifications (user_id, door_id, title, message, type, is_read, created_at)
-            VALUES (?, ?, ?, ?, 'ACCESS', FALSE, NOW())`,
-                [user_id, door_id, title, message]
             )
 
             await conn.commit()
@@ -298,10 +272,7 @@ const HistoryModel = {
         } catch (err) {
             await conn.rollback()
             console.error('[Transaction ERROR - checkInInvalid]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Ghi nhận check-in không thành công thất bại'
-            )
+            throw err
         }
     },
 
@@ -312,22 +283,14 @@ const HistoryModel = {
 
             const door_id = door.id
             const user_id = user?.id || null
-            const full_name = user?.full_name || 'Người dùng không xác định'
+            const full_name = user?.full_name || 'Người dùng lạ'
             const door_name = door.name.toLowerCase()
 
             const noteHistory = `${full_name} đã check-out ${door_name} không thành công`
             await conn.execute(
                 `INSERT INTO history (door_id, user_id, action, door_status, time, note)
-            VALUES (?, ?, 'FAILED', 'OPENED', NOW(), ?)`,
+                VALUES (?, ?, 'FAILED', 'OPENED', NOW(), ?)`,
                 [door_id, user_id, noteHistory]
-            )
-
-            const title = 'Cảnh báo truy cập'
-            const message = `${full_name} đã check-out ${door_name} không thành công`
-            await conn.execute(
-                `INSERT INTO notifications (user_id, door_id, title, message, type, is_read, created_at)
-            VALUES (?, ?, ?, ?, 'ACCESS', FALSE, NOW())`,
-                [user_id, door_id, title, message]
             )
 
             await conn.commit()
@@ -339,12 +302,10 @@ const HistoryModel = {
         } catch (err) {
             await conn.rollback()
             console.error('[Transaction ERROR - checkOutInvalid]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Ghi nhận check-out không thành công thất bại'
-            )
+            throw err
         }
     },
+
     async goOutDoor({ door, user = null }) {
         const conn = await getConnection()
         try {
@@ -352,20 +313,18 @@ const HistoryModel = {
 
             const door_id = door.id
             const user_id = user?.id || null
-            const full_name = user?.full_name || 'Người dùng không xác định'
+            const full_name = user?.full_name || 'Người dùng lạ'
             const door_name = door.name.toLowerCase()
 
-            // 1. Cập nhật trạng thái cửa mở
             await conn.execute(
                 `UPDATE doors SET current_status = 'OPENED', last_updated = NOW() WHERE id = ?`,
                 [door_id]
             )
 
-            // 2. Thêm vào bảng history
             const noteHistory = `${full_name} đã mở ${door_name}`
             await conn.execute(
                 `INSERT INTO history (door_id, user_id, action, door_status, time, note)
-            VALUES (?, ?, 'OPEN', 'OPENED', NOW(), ?)`,
+                VALUES (?, ?, 'OPEN', 'OPENED', NOW(), ?)`,
                 [door_id, user_id, noteHistory]
             )
 
@@ -377,12 +336,10 @@ const HistoryModel = {
         } catch (err) {
             await conn.rollback()
             console.error('[Transaction ERROR - goOutDoor]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Cập nhật trạng thái cửa mở thất bại'
-            )
+            throw err
         }
     },
+
     async doorClose({ door, user = null }) {
         const conn = await getConnection()
         try {
@@ -390,20 +347,17 @@ const HistoryModel = {
 
             const door_id = door.id
             const user_id = user?.id || null
-            const full_name = user?.full_name || 'Người dùng không xác định'
             const door_name = door.name.toLowerCase()
 
-            // 1. Cập nhật trạng thái cửa đóng
             await conn.execute(
                 `UPDATE doors SET current_status = 'CLOSED', last_updated = NOW() WHERE id = ?`,
                 [door_id]
             )
 
-            // 2. Thêm vào bảng history
-            const noteHistory = `${full_name} đã đóng ${door_name}`
+            const noteHistory = `Tự động đóng ${door_name}`
             await conn.execute(
                 `INSERT INTO history (door_id, user_id, action, door_status, time, note)
-            VALUES (?, ?, 'CLOSE', 'CLOSED', NOW(), ?)`,
+                VALUES (?, ?, 'CLOSE', 'CLOSED', NOW(), ?)`,
                 [door_id, user_id, noteHistory]
             )
 
@@ -415,10 +369,7 @@ const HistoryModel = {
         } catch (err) {
             await conn.rollback()
             console.error('[Transaction ERROR - doorClose]', err)
-            throw new ApiError(
-                StatusCodes.INTERNAL_SERVER_ERROR,
-                'Cập nhật trạng thái cửa đóng thất bại'
-            )
+            throw err
         }
     },
 }

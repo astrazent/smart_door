@@ -1,7 +1,6 @@
 DROP TABLE IF EXISTS history;
 DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS cards;
-DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS doors;
 
@@ -26,19 +25,6 @@ CREATE TABLE users (
     role ENUM('admin', 'member') DEFAULT 'member',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
-CREATE TABLE notifications (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NULL,                      -- Người nhận thông báo (NULL nếu là thông báo hệ thống chung)
-    door_id INT UNSIGNED NULL,                      -- Liên quan đến cửa nào (nếu có)
-    title VARCHAR(255) NOT NULL,                    -- Tiêu đề thông báo
-    message TEXT NOT NULL,                          -- Nội dung chi tiết
-    type ENUM('INFO', 'WARNING', 'ERROR', 'ACCESS', 'SYSTEM') DEFAULT 'INFO',  -- Loại thông báo
-    is_read BOOLEAN DEFAULT FALSE,                  -- Đã đọc hay chưa
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời điểm tạo
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (door_id) REFERENCES doors(id) ON DELETE SET NULL
 );
 
 CREATE TABLE cards (
@@ -104,14 +90,6 @@ INSERT INTO doors (door_code, name, location, server_domain, is_active, current_
 ('DOOR_STORAGE', 'Cửa kho', 'Tầng 2', NULL, TRUE, 'CLOSED'),
 ('DOOR_TECH', 'Cửa kỹ thuật', 'Tầng 3', NULL, TRUE, 'OPENED');
 
-INSERT INTO notifications (user_id, door_id, title, message, type)
-VALUES
-(1, 1, 'Mở cửa thành công', 'Nguyen Van A đã mở cửa chính lúc 08:30 sáng.', 'ACCESS'),
-(4, 4, 'Mở cửa thất bại', 'Pham Thi D mở cửa kỹ thuật thất bại do thẻ không hợp lệ.', 'WARNING'),
-(NULL, NULL, 'Hệ thống khởi động lại', 'Máy chủ trung tâm đã khởi động lại lúc 03:00 sáng.', 'SYSTEM'),
-(2, 2, 'Cửa sau bị mở bất thường', 'Phát hiện cửa sau bị mở quá 10 phút.', 'ERROR');
-
-
 INSERT INTO attendance (user_id, door_id, check_in_time, check_out_time, status, note)
 VALUES
 -- Nguyen Van A
@@ -133,25 +111,22 @@ VALUES
 (5, 1, DATE_ADD(DATE_SUB(NOW(), INTERVAL 4 DAY), INTERVAL 8 HOUR), DATE_ADD(DATE_ADD(DATE_SUB(NOW(), INTERVAL 4 DAY), INTERVAL 8 HOUR), INTERVAL 5 MINUTE), 'CHECKED_OUT', 'Do Van E vào cửa chính'),
 (5, 3, DATE_ADD(DATE_SUB(NOW(), INTERVAL 10 DAY), INTERVAL 9 HOUR), DATE_ADD(DATE_ADD(DATE_SUB(NOW(), INTERVAL 10 DAY), INTERVAL 9 HOUR), INTERVAL 5 MINUTE), 'CHECKED_OUT', 'Do Van E vào kho');
 
--- ==============================
--- DỮ LIỆU LỊCH SỬ ĐA DẠNG NGÀY
--- ==============================
-INSERT INTO history (door_id, user_id, card_id, action, door_status, note, time) VALUES
-(1, 1, 1, 'OPEN', 'OPENED', 'Nguyen Van A mở cửa chính', NOW() - INTERVAL 10 MINUTE),
-(1, 1, 1, 'CLOSE', 'CLOSED', 'Nguyen Van A đóng cửa chính', NOW() - INTERVAL 9 MINUTE),
-(2, 2, 2, 'OPEN', 'OPENED', 'Tran Thi B mở cửa sau', NOW() - INTERVAL 1 DAY + INTERVAL 8 HOUR),
-(3, 3, 3, 'OPEN', 'OPENED', 'Le Van C mở cửa kho', NOW() - INTERVAL 2 DAY + INTERVAL 7 HOUR),
-(3, 3, 3, 'CLOSE', 'CLOSED', 'Le Van C đóng cửa kho', NOW() - INTERVAL 2 DAY + INTERVAL 7 HOUR + INTERVAL 4 MINUTE),
-(4, 4, 4, 'FAILED', 'CLOSED', 'Pham Thi D mở cửa kỹ thuật thất bại', NOW() - INTERVAL 3 DAY + INTERVAL 15 HOUR),
-(1, 5, 5, 'OPEN', 'OPENED', 'Do Van E mở cửa chính bằng thẻ hợp lệ', NOW() - INTERVAL 4 DAY + INTERVAL 8 HOUR),
-(1, 5, 5, 'CLOSE', 'CLOSED', 'Do Van E đóng cửa chính', NOW() - INTERVAL 4 DAY + INTERVAL 8 HOUR + INTERVAL 5 MINUTE),
-(2, 3, 8, 'OPEN', 'OPENED', 'Le Van C mở cửa sau bằng thẻ phụ', NOW() - INTERVAL 5 DAY + INTERVAL 22 HOUR),
-(2, 3, 8, 'CLOSE', 'CLOSED', 'Le Van C đóng cửa sau', NOW() - INTERVAL 5 DAY + INTERVAL 22 HOUR + INTERVAL 10 MINUTE),
-(3, 1, 9, 'FAILED', 'CLOSED', 'Nguyen Van A thử mở cửa kho nhưng bị từ chối', NOW() - INTERVAL 6 DAY + INTERVAL 9 HOUR),
-(4, NULL, NULL, 'CLOSE', 'CLOSED', 'Cửa kỹ thuật tự động đóng lúc 23:00', NOW() - INTERVAL 7 DAY + INTERVAL 23 HOUR),
-(1, 2, 2, 'OPEN', 'OPENED', 'Tran Thi B mở cửa chính', NOW() - INTERVAL 8 DAY + INTERVAL 8 HOUR),
-(1, 2, 2, 'CLOSE', 'CLOSED', 'Tran Thi B đóng cửa chính', NOW() - INTERVAL 8 DAY + INTERVAL 8 HOUR + INTERVAL 5 MINUTE),
-(2, 4, 4, 'OPEN', 'OPENED', 'Pham Thi D mở cửa sau', NOW() - INTERVAL 9 DAY + INTERVAL 7 HOUR),
-(2, 4, 4, 'FAILED', 'CLOSED', 'Thẻ lỗi khi mở cửa sau', NOW() - INTERVAL 9 DAY + INTERVAL 7 HOUR + INTERVAL 2 MINUTE),
-(3, 5, 5, 'OPEN', 'OPENED', 'Do Van E mở cửa kho', NOW() - INTERVAL 10 DAY + INTERVAL 9 HOUR),
-(3, 5, 5, 'CLOSE', 'CLOSED', 'Do Van E đóng cửa kho', NOW() - INTERVAL 10 DAY + INTERVAL 9 HOUR + INTERVAL 5 MINUTE);
+INSERT INTO history (door_id, user_id, action, door_status, note, time) VALUES
+(1, 1, 'OPEN', 'OPENED', 'Nguyen Van A mở cửa chính', NOW() - INTERVAL 10 MINUTE),
+(1, 1, 'CLOSE', 'CLOSED', 'Nguyen Van A đóng cửa chính', NOW() - INTERVAL 9 MINUTE),
+(2, 2, 'OPEN', 'OPENED', 'Tran Thi B mở cửa sau', NOW() - INTERVAL 1 DAY + INTERVAL 8 HOUR),
+(3, 3, 'OPEN', 'OPENED', 'Le Van C mở cửa kho', NOW() - INTERVAL 2 DAY + INTERVAL 7 HOUR),
+(3, 3, 'CLOSE', 'CLOSED', 'Le Van C đóng cửa kho', NOW() - INTERVAL 2 DAY + INTERVAL 7 HOUR + INTERVAL 4 MINUTE),
+(4, 4, 'FAILED', 'CLOSED', 'Pham Thi D mở cửa kỹ thuật thất bại', NOW() - INTERVAL 3 DAY + INTERVAL 15 HOUR),
+(1, 5, 'OPEN', 'OPENED', 'Do Van E mở cửa chính bằng thẻ hợp lệ', NOW() - INTERVAL 4 DAY + INTERVAL 8 HOUR),
+(1, 5, 'CLOSE', 'CLOSED', 'Do Van E đóng cửa chính', NOW() - INTERVAL 4 DAY + INTERVAL 8 HOUR + INTERVAL 5 MINUTE),
+(2, 3, 'OPEN', 'OPENED', 'Le Van C mở cửa sau bằng thẻ phụ', NOW() - INTERVAL 5 DAY + INTERVAL 22 HOUR),
+(2, 3, 'CLOSE', 'CLOSED', 'Le Van C đóng cửa sau', NOW() - INTERVAL 5 DAY + INTERVAL 22 HOUR + INTERVAL 10 MINUTE),
+(3, 1, 'FAILED', 'CLOSED', 'Nguyen Van A thử mở cửa kho nhưng bị từ chối', NOW() - INTERVAL 6 DAY + INTERVAL 9 HOUR),
+(4, NULL, 'CLOSE', 'CLOSED', 'Cửa kỹ thuật tự động đóng lúc 23:00', NOW() - INTERVAL 7 DAY + INTERVAL 23 HOUR),
+(1, 2, 'OPEN', 'OPENED', 'Tran Thi B mở cửa chính', NOW() - INTERVAL 8 DAY + INTERVAL 8 HOUR),
+(1, 2, 'CLOSE', 'CLOSED', 'Tran Thi B đóng cửa chính', NOW() - INTERVAL 8 DAY + INTERVAL 8 HOUR + INTERVAL 5 MINUTE),
+(2, 4, 'OPEN', 'OPENED', 'Pham Thi D mở cửa sau', NOW() - INTERVAL 9 DAY + INTERVAL 7 HOUR),
+(2, 4, 'FAILED', 'CLOSED', 'Thẻ lỗi khi mở cửa sau', NOW() - INTERVAL 9 DAY + INTERVAL 7 HOUR + INTERVAL 2 MINUTE),
+(3, 5, 'OPEN', 'OPENED', 'Do Van E mở cửa kho', NOW() - INTERVAL 10 DAY + INTERVAL 9 HOUR),
+(3, 5, 'CLOSE', 'CLOSED', 'Do Van E đóng cửa kho', NOW() - INTERVAL 10 DAY + INTERVAL 9 HOUR + INTERVAL 5 MINUTE);
