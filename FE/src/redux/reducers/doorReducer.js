@@ -1,35 +1,37 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-    doors: [],
+    selectedDoor: null,
 }
 
 const doorSlice = createSlice({
     name: 'door',
     initialState,
     reducers: {
-        setDoors: (state, action) => {
-            state.doors = action.payload || []
+        setSelectedDoor: (state, action) => {
+            const door = action.payload
+            state.selectedDoor = {
+                id: door.id,
+                door_code: door.door_code,
+                name: door.name,
+                location: door.location,
+                server_domain: door.server_domain,
+                is_active: door.is_active,
+                current_status: door.current_status,
+                last_updated: door.last_updated,
+            }
         },
-        addDoor: (state, action) => {
-            state.doors.push(action.payload)
+        clearSelectedDoor: state => {
+            state.selectedDoor = null
         },
-        updateDoor: (state, action) => {
+        updateSelectedDoor: (state, action) => {
+            if (!state.selectedDoor) return
             const updated = action.payload
-            state.doors = state.doors.map(d =>
-                d.id === updated.id ? { ...d, ...updated } : d
-            )
-        },
-        removeDoor: (state, action) => {
-            const id = action.payload
-            state.doors = state.doors.filter(d => d.id !== id)
-        },
-        clearDoors: state => {
-            state.doors = []
+            state.selectedDoor = { ...state.selectedDoor, ...updated }
         },
     },
 })
 
-export const { setDoors, addDoor, updateDoor, removeDoor, clearDoors } =
+export const { setSelectedDoor, clearSelectedDoor, updateSelectedDoor } =
     doorSlice.actions
 export default doorSlice.reducer

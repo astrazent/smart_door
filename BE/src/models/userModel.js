@@ -76,6 +76,18 @@ const UsersModel = {
         )
         return rows[0] || null
     },
+    async getUserByUid(uid) {
+        const conn = getConnection()
+        const [rows] = await conn.execute(
+            `SELECT u.*
+            FROM ${USERS_TABLE_NAME} u
+            INNER JOIN cards c ON c.user_id = u.id
+            WHERE c.card_uid = ? AND c.is_active = TRUE
+            LIMIT 1`,
+            [uid]
+        )
+        return rows[0] || null
+    },
 
     async updateUser(id, data) {
         const schema = USERS_SCHEMA.fork(

@@ -1,14 +1,16 @@
 DROP TABLE IF EXISTS history;
 DROP TABLE IF EXISTS attendance;
 DROP TABLE IF EXISTS cards;
+DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS doors;
 
 CREATE TABLE doors (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    door_code VARCHAR(50) NOT NULL UNIQUE, -- Mã định danh cửa, duy nhất
+    door_code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     location VARCHAR(100),
+    server_domain VARCHAR(255), -- Tên miền hoặc địa chỉ server quản lý cửa
     is_active BOOLEAN DEFAULT TRUE,
     current_status ENUM('OPENED', 'CLOSED') DEFAULT 'CLOSED',
     last_updated DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -24,6 +26,19 @@ CREATE TABLE users (
     role ENUM('admin', 'member') DEFAULT 'member',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE notifications (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NULL,                      -- Người nhận thông báo (NULL nếu là thông báo hệ thống chung)
+    door_id INT UNSIGNED NULL,                      -- Liên quan đến cửa nào (nếu có)
+    title VARCHAR(255) NOT NULL,                    -- Tiêu đề thông báo
+    message TEXT NOT NULL,                          -- Nội dung chi tiết
+    type ENUM('INFO', 'WARNING', 'ERROR', 'ACCESS', 'SYSTEM') DEFAULT 'INFO',  -- Loại thông báo
+    is_read BOOLEAN DEFAULT FALSE,                  -- Đã đọc hay chưa
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,  -- Thời điểm tạo
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (door_id) REFERENCES doors(id) ON DELETE SET NULL
 );
 
 CREATE TABLE cards (
@@ -56,14 +71,12 @@ CREATE TABLE history (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     door_id INT UNSIGNED NOT NULL,
     user_id INT UNSIGNED,
-    card_id INT UNSIGNED,
     action ENUM('OPEN', 'CLOSE', 'FAILED') NOT NULL,
     door_status ENUM('OPENED', 'CLOSED') NOT NULL,
     time DATETIME DEFAULT CURRENT_TIMESTAMP,
     note VARCHAR(255),
     FOREIGN KEY (door_id) REFERENCES doors(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 INSERT INTO users (full_name, username, email, phone, role, password_hash) VALUES
@@ -85,11 +98,19 @@ INSERT INTO cards (card_uid, user_id, is_active) VALUES
 ('A1 B2 C3 D4', 1, TRUE),
 ('99 11 22 33', NULL, TRUE);
 
-INSERT INTO doors (door_code, name, location, is_active, current_status) VALUES
-('DOOR_MAIN', 'Cửa chính', 'Tầng 1', TRUE, 'CLOSED'),
-('DOOR_BACK', 'Cửa sau', 'Tầng 1', TRUE, 'CLOSED'),
-('DOOR_STORAGE', 'Cửa kho', 'Tầng 2', TRUE, 'CLOSED'),
-('DOOR_TECH', 'Cửa kỹ thuật', 'Tầng 3', TRUE, 'OPENED');
+INSERT INTO doors (door_code, name, location, server_domain, is_active, current_status) VALUES
+('DOOR_MAIN', 'Cửa chính', 'Tầng 1', NULL, TRUE, 'CLOSED'),
+('DOOR_BACK', 'Cửa sau', 'Tầng 1', NULL, TRUE, 'CLOSED'),
+('DOOR_STORAGE', 'Cửa kho', 'Tầng 2', NULL, TRUE, 'CLOSED'),
+('DOOR_TECH', 'Cửa kỹ thuật', 'Tầng 3', NULL, TRUE, 'OPENED');
+
+INSERT INTO notifications (user_id, door_id, title, message, type)
+VALUES
+(1, 1, 'Mở cửa thành công', 'Nguyen Van A đã mở cửa chính lúc 08:30 sáng.', 'ACCESS'),
+(4, 4, 'Mở cửa thất bại', 'Pham Thi D mở cửa kỹ thuật thất bại do thẻ không hợp lệ.', 'WARNING'),
+(NULL, NULL, 'Hệ thống khởi động lại', 'Máy chủ trung tâm đã khởi động lại lúc 03:00 sáng.', 'SYSTEM'),
+(2, 2, 'Cửa sau bị mở bất thường', 'Phát hiện cửa sau bị mở quá 10 phút.', 'ERROR');
+
 
 INSERT INTO attendance (user_id, door_id, check_in_time, check_out_time, status, note)
 VALUES

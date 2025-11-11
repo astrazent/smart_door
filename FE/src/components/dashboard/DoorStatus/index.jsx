@@ -1,46 +1,75 @@
-import React from 'react'
-// Để sử dụng icon, bạn cần cài đặt thư viện react-icons
-// Bằng câu lệnh: npm install react-icons
+import React, { useEffect, useRef, useState } from 'react'
 import { FaDoorOpen, FaDoorClosed } from 'react-icons/fa'
+import { useDispatch } from 'react-redux'
+import { useDoorStatus } from '~/hooks/useEsp'
+import { updateSelectedDoor } from '~/redux/reducers/doorReducer'
 
-// Component sẽ nhận một prop là `isActive` (true hoặc false) để quyết định trạng thái
-const DoorStatus = ({ isActive }) => {
+const DoorStatus = ({ params }) => {
+    const dispatch = useDispatch()
+    const { data, isError } = useDoorStatus(params)
+    const doorStatus = data?.data?.current_status
+
+    const [isOffline, setIsOffline] = useState(false)
+    const errorCount = useRef(0)
+
+    useEffect(() => {
+        if (isError) {
+            errorCount.current += 1
+        } else {
+            errorCount.current = 0
+        }
+
+        setIsOffline(errorCount.current >= 3)
+    }, [isError])
+
+    const isActive =
+        !isOffline && (doorStatus === 'OPENED' || doorStatus === 'CLOSED')
+    const isDoorOpen = isActive && doorStatus === 'OPENED'
+
+    useEffect(() => {
+        if (doorStatus && !isOffline) {
+            dispatch(updateSelectedDoor({ current_status: doorStatus }))
+        }
+    }, [doorStatus, dispatch, isOffline])
+
     return (
         <div
-            className={`
-                p-6 rounded-lg shadow-md h-full text-white 
+            className={`p-6 rounded-lg shadow-md h-full text-white 
                 flex flex-col justify-center items-center 
                 transition-colors duration-500 ease-in-out
-                ${isActive ? 'bg-green-600' : 'bg-slate-700'}
-            `}
+                ${isOffline ? 'bg-slate-700' : 'bg-green-600'}`}
         >
-            {/* Icon chính */}
             <div className="text-7xl mb-4">
-                {isActive ? <FaDoorOpen /> : <FaDoorClosed />}
+                {isDoorOpen ? <FaDoorOpen /> : <FaDoorClosed />}
             </div>
 
-            {/* Trạng thái chữ */}
             <h2 className="text-3xl font-bold mb-1">
-                {isActive ? 'Hoạt Động' : 'Không Hoạt Động'}
+                {isOffline ? 'Không Hoạt Động' : 'Hoạt Động'}
             </h2>
-            <p className={isActive ? 'text-green-200' : 'text-slate-300'}>
+            <p className={isOffline ? 'text-slate-300' : 'text-green-200'}>
                 Trạng thái cửa
             </p>
 
-            {/* Chấm trạng thái */}
             <div className="flex items-center mt-4">
                 <span
-                    className={`
-                        relative flex h-3 w-3 rounded-full
-                        ${isActive ? 'bg-green-400' : 'bg-slate-400'}
-                    `}
+                    className={`relative flex h-3 w-3 rounded-full ${
+                        isOffline
+                            ? 'bg-slate-400'
+                            : isDoorOpen
+                              ? 'bg-red-400'
+                              : 'bg-green-400'
+                    }`}
                 >
-                    {isActive && (
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75"></span>
+                    {isDoorOpen && !isOffline && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75"></span>
                     )}
                 </span>
                 <span className="ml-2 text-sm">
-                    {isActive ? 'Cửa đang mở' : 'Cửa đã đóng'}
+                    {isOffline
+                        ? 'Thiết bị không phản hồi'
+                        : isDoorOpen
+                          ? 'Cửa đang mở'
+                          : 'Cửa đã đóng'}
                 </span>
             </div>
         </div>

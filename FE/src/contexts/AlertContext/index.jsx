@@ -8,7 +8,7 @@ export const AlertProvider = ({ children }) => {
     const showAlert = useCallback((message, options = {}) => {
         const { type = 'success', duration = 2000 } = options
         const id = new Date().getTime()
-        setAlert({ id, message, duration, type }) // Thêm 'type' vào state
+        setAlert({ id, message, duration, type })
     }, [])
 
     const closeAlert = () => {
@@ -23,7 +23,7 @@ export const AlertProvider = ({ children }) => {
                     key={alert.id}
                     message={alert.message}
                     duration={alert.duration}
-                    type={alert.type} // Truyền 'type' xuống component Alert
+                    type={alert.type}
                     onClose={closeAlert}
                 />
             )}

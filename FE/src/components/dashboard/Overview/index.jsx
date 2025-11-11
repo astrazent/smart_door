@@ -12,71 +12,58 @@ import { HiOutlineDotsHorizontal } from 'react-icons/hi'
 import { useListDoorUserHistory } from '~/hooks/useHistory'
 import { format, getWeek, getYear, getMonth, startOfYear } from 'date-fns'
 
-// Hàm xử lý và tổng hợp dữ liệu
 const processHistoryData = (history, timeRange) => {
     if (!history || !history.data) return []
 
-    // Chỉ lọc những lần mở cửa thành công
     const openEvents = history.data.filter(event => event.action === 'OPEN')
     const currentYear = new Date().getFullYear()
 
     if (timeRange === 'month') {
-        // ... (giữ nguyên logic cho 'month')
     }
 
     if (timeRange === 'week') {
-        // ... (giữ nguyên logic cho 'week')
     }
 
-    // CẬP NHẬT LOGIC CHO 'day'
     if (timeRange === 'day') {
-        // Gom nhóm các sự kiện theo ngày và đếm số lần mở cửa
         const dailyCounts = openEvents.reduce((acc, event) => {
             const eventDate = new Date(event.time)
-            // Lấy 30 ngày gần nhất
+
             const thirtyDaysAgo = new Date()
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-            // Chỉ xử lý các sự kiện trong vòng 30 ngày qua
             if (eventDate >= thirtyDaysAgo) {
-                const dateKey = format(eventDate, 'dd/MM') // Định dạng key là 'ngày/tháng'
+                const dateKey = format(eventDate, 'dd/MM')
                 acc[dateKey] = (acc[dateKey] || 0) + 1
             }
             return acc
         }, {})
 
-        // Chuyển đổi object đã gom nhóm thành mảng cho biểu đồ và sắp xếp
         return Object.keys(dailyCounts)
             .map(dateKey => {
-                // Tách ngày và tháng để tạo lại đối tượng Date và sắp xếp cho đúng
                 const [day, month] = dateKey.split('/')
                 return {
                     name: dateKey,
                     value: dailyCounts[dateKey],
-                    // Thêm một trường date để sắp xếp
+
                     date: new Date(currentYear, month - 1, day),
                 }
             })
-            .sort((a, b) => a.date - b.date) // Sắp xếp các ngày theo thứ tự tăng dần
+            .sort((a, b) => a.date - b.date)
     }
 
     if (timeRange === 'year') {
-        // ... (giữ nguyên logic cho 'year')
     }
 
     return []
 }
 
 const Overview = () => {
-    // State để quản lý bộ lọc thời gian (tuần, tháng, năm) và menu
-    const [timeRange, setTimeRange] = useState('day') // 'week', 'month', 'year'
+    const [timeRange, setTimeRange] = useState('day')
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [chartData, setChartData] = useState([])
 
-    // Gọi hook để lấy dữ liệu, giả sử không cần params
     const { data: historyData, isLoading } = useListDoorUserHistory()
 
-    // Sử dụng useEffect để xử lý dữ liệu mỗi khi historyData hoặc timeRange thay đổi
     useEffect(() => {
         const processedData = processHistoryData(historyData, timeRange)
         setChartData(processedData)
@@ -84,7 +71,7 @@ const Overview = () => {
 
     const handleSetTimeRange = range => {
         setTimeRange(range)
-        setIsMenuOpen(false) // Đóng menu sau khi chọn
+        setIsMenuOpen(false)
     }
 
     if (isLoading) {

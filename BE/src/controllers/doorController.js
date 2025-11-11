@@ -52,9 +52,37 @@ const listDoors = async (req, res, next) => {
     }
 }
 
+const getDoorById = async (req, res, next) => {
+    try {
+        const id = parseInt(req.params.id)
+        const data = await doorsService.getDoorByIdService(id)
+        return res.status(StatusCodes.OK).json({
+            message: 'Lấy thông tin cửa thành công',
+            data,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+const getDoorByCode = async (req, res, next) => {
+    try {
+        const { door_code } = req.params
+        const data = await doorsService.getDoorByCodeService(door_code)
+        return res.status(StatusCodes.OK).json({
+            message: 'Lấy thông tin cửa thành công',
+            data,
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
 export const doorsController = {
     addDoor,
     updateDoor,
     deleteDoor,
     listDoors,
+    getDoorById,
+    getDoorByCode,
 }

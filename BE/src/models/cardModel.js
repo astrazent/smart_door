@@ -116,6 +116,19 @@ const CardsModel = {
         )
         return rows
     },
+    async listCardsESP() {
+        const conn = getConnection()
+        const [rows] = await conn.execute(
+            `SELECT 
+            c.card_uid AS uid,
+            u.full_name AS name
+        FROM ${CARDS_TABLE_NAME} c
+        LEFT JOIN users u ON c.user_id = u.id
+        WHERE u.id IS NOT NULL
+        ORDER BY c.id DESC`
+        )
+        return rows
+    },
 }
 
 export { CARDS_TABLE_NAME, CARDS_SCHEMA, CardsModel }

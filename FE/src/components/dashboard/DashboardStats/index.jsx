@@ -23,7 +23,7 @@ const DashboardStats = () => {
     const totalDoors = doorData?.data?.length || 0
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard title="Tổng số User" value={totalUsers} icon="users" />
             <StatCard title="Tổng số Thẻ" value={totalCards} icon="cards" />
             <StatCard

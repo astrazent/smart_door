@@ -6,7 +6,7 @@ import path from 'path'
 const TARGET_DIR = './src' // thay đổi theo dự án của bạn
 
 // Hàm đọc tất cả file trong thư mục (recursive)
-function getAllFiles(dir, ext = ['.js', '.ts']) {
+function getAllFiles(dir, ext = ['.js', '.ts', '.jsx']) {
     let results = []
     const list = fs.readdirSync(dir)
     list.forEach((file) => {
@@ -21,15 +21,15 @@ function getAllFiles(dir, ext = ['.js', '.ts']) {
     return results
 }
 
-// Hàm xóa comment trong 1 file
+// Hàm xóa comment trong 1 file, giữ nguyên URL
 function removeCommentsFromFile(filePath) {
     let content = fs.readFileSync(filePath, 'utf8')
 
     // Xóa comment /* ... */
     content = content.replace(/\/\*[\s\S]*?\*\//g, '')
 
-    // Xóa comment // ...
-    content = content.replace(/\/\/.*$/gm, '')
+    // Xóa comment // ... nhưng bỏ qua http:// hoặc https://
+    content = content.replace(/(^|[^:])\/\/.*$/gm, '$1')
 
     fs.writeFileSync(filePath, content, 'utf8')
     console.log(`Removed comments: ${filePath}`)

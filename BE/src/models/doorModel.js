@@ -15,26 +15,28 @@ const DOORS_SCHEMA = Joi.object({
     location: Joi.string().max(100).allow('', null).messages({
         'string.max': 'Vị trí tối đa 100 ký tự',
     }),
+    server_domain: Joi.string().max(255).allow('', null).messages({
+        'string.max': 'Server domain tối đa 255 ký tự',
+    }),
     is_active: Joi.boolean().default(true),
     current_status: Joi.string().valid('OPENED', 'CLOSED').default('CLOSED'),
 })
 
 const DoorsModel = {
     async createDoor(data) {
-        const { error, value } = DOORS_SCHEMA.validate(data, {
-            abortEarly: false,
-        })
+        const { error, value } = DOORS_SCHEMA.validate(data, { abortEarly: false })
         if (error) throw error
 
         const conn = getConnection()
         const [result] = await conn.execute(
             `INSERT INTO ${DOORS_TABLE_NAME} 
-            (door_code, name, location, is_active, current_status)
-            VALUES (?, ?, ?, ?, ?)`,
+            (door_code, name, location, server_domain, is_active, current_status)
+            VALUES (?, ?, ?, ?, ?, ?)`,
             [
                 value.door_code,
                 value.name,
                 value.location || null,
+                value.server_domain || null,
                 value.is_active,
                 value.current_status,
             ]

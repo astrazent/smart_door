@@ -10,7 +10,6 @@ import {
 const StatCard = ({ title, value, icon }) => {
     const renderIcon = () => {
         switch (icon) {
-            // --- Tổng số User ---
             case 'users':
                 return (
                     <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
@@ -21,7 +20,6 @@ const StatCard = ({ title, value, icon }) => {
                     </div>
                 )
 
-            // --- Tổng số Thẻ ---
             case 'cards':
                 return (
                     <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
@@ -32,7 +30,6 @@ const StatCard = ({ title, value, icon }) => {
                     </div>
                 )
 
-            // --- Tổng số Lần mở/đóng ---
             case 'door-events':
                 return (
                     <div className="p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
@@ -43,7 +40,6 @@ const StatCard = ({ title, value, icon }) => {
                     </div>
                 )
 
-            // --- Tổng số Cửa ---
             case 'doors':
                 return (
                     <div className="p-3 bg-teal-100 dark:bg-teal-900/50 rounded-lg">

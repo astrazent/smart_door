@@ -17,6 +17,7 @@ const addDoorService = async payload => {
         door_code: payload.door_code || generateDoorCode(),
         name: payload.name,
         location: payload.location || null,
+        server_domain: payload.server_domain || null,
         is_active: payload.is_active !== undefined ? payload.is_active : true,
         current_status: payload.current_status || 'CLOSED',
     })
@@ -32,7 +33,10 @@ const updateDoorService = async (id, payload) => {
 
     if (payload.door_code) delete payload.door_code
 
-    const updatedDoor = await DoorsModel.updateDoor(id, payload)
+    const updatedDoor = await DoorsModel.updateDoor(id, {
+        ...payload,
+        server_domain: payload.server_domain !== undefined ? payload.server_domain : door.server_domain
+    })
     return updatedDoor
 }
 
@@ -50,9 +54,27 @@ const listDoorsService = async (limit = 50, offset = 0) => {
     return await DoorsModel.listDoors(limit, offset)
 }
 
+const getDoorByIdService = async id => {
+    const door = await DoorsModel.getDoorById(id)
+    if (!door) {
+        throw new ApiError(StatusCodes.NOT_FOUND, 'Cửa không tồn tại')
+    }
+    return door
+}
+
+const getDoorByCodeService = async doorCode => {
+    const door = await DoorsModel.getDoorByCode(doorCode)
+    if (!door) {
+        throw new ApiError(StatusCodes.NOT_FOUND, 'Cửa không tồn tại')
+    }
+    return door
+}
+
 export const doorsService = {
     addDoorService,
     updateDoorService,
     deleteDoorService,
     listDoorsService,
+    getDoorByIdService,
+    getDoorByCodeService,
 }

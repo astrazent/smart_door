@@ -31,8 +31,7 @@ const DoorHistoryTable = () => {
                             {[
                                 'Thời gian',
                                 'Người dùng',
-                                'Tên cửa',
-                                'Vị trí',
+                                'Chức vụ',
                                 'Hành động',
                                 'Ghi chú',
                             ].map(h => (
@@ -59,14 +58,15 @@ const DoorHistoryTable = () => {
                                 <td className="p-2 font-medium">
                                     {item.user_name || 'Hệ thống'}
                                 </td>
-                                <td className="p-2">{item.door_name}</td>
-                                <td className="p-2">{item.location}</td>
+                                <td className="p-2">
+                                    {item.role || 'Không xác định'}
+                                </td>
                                 <td className="p-2 text-center">
                                     <ActionStatusPill
                                         action={item.door_status}
                                     />
                                 </td>
-                                <td className="p-2 text-gray-500 dark:text-green-300">
+                                <td className="p-2 text-gray-500 dark:text-green-300 whitespace-nowrap">
                                     {item.note}
                                 </td>
                             </tr>
@@ -74,7 +74,7 @@ const DoorHistoryTable = () => {
                         {historyData.length === 0 && (
                             <tr>
                                 <td
-                                    colSpan={6}
+                                    colSpan={5}
                                     className="text-center py-4 text-gray-500"
                                 >
                                     Không có dữ liệu lịch sử.

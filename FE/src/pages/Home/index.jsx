@@ -7,8 +7,6 @@ const Home = () => {
 
     const handleToggleLock = () => {
         setIsLocked(!isLocked)
-        // Trong thực tế, bạn sẽ gọi API ở đây để điều khiển cửa
-        console.log(isLocked ? 'Unlocking door...' : 'Locking door...')
     }
 
     return (

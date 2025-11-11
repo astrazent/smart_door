@@ -7,7 +7,9 @@ router.post('/register', userController.register)
 
 router.post('/login', userController.login)
 
-router.post('/logout', userController.logout)
+router.route('/verify').get(authMiddleware, userController.validateToken)
+
+router.post('/logout', authMiddleware, userController.logout)
 
 router.post('/create', authMiddleware, userController.createUser)
 

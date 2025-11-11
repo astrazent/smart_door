@@ -9,7 +9,6 @@ const registerService = async payload => {
     if (existedUsername) {
         throw new ApiError(StatusCodes.CONFLICT, 'Username đã tồn tại')
     }
-
     if (payload.email) {
         const existedEmail = await UsersModel.getUserByEmail(payload.email)
         if (existedEmail) {
@@ -40,6 +39,14 @@ const loginService = async (identifier, password) => {
             'Username hoặc email không tồn tại'
         )
 
+    // Kiểm tra role
+    if (user.role !== 'admin') {
+        throw new ApiError(
+            StatusCodes.FORBIDDEN,
+            'Chỉ admin mới được đăng nhập'
+        )
+    }
+
     const isPasswordValid = await bcrypt.compare(
         password,
         user.password_hash || ''
@@ -52,7 +59,7 @@ const loginService = async (identifier, password) => {
         username: user.username,
         role: user.role,
     })
-
+    delete user.password_hash
     return { user, accessToken }
 }
 
@@ -79,6 +86,14 @@ const listUsersService = async (limit = 50, offset = 0) => {
 
 const getUserByIdService = async id => {
     const user = await UsersModel.getUserById(id)
+    if (!user) {
+        throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy user')
+    }
+    return user
+}
+
+const getUserByUidService = async uid => {
+    const user = await UsersModel.getUserByUid(uid)
     if (!user) {
         throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy user')
     }
@@ -121,6 +136,7 @@ export const userService = {
     createUserService,
     listUsersService,
     getUserByIdService,
+    getUserByUidService,
     findUserByEmailOrUsernameService,
     updateUserService,
     deleteUserService,

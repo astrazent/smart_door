@@ -1,4 +1,3 @@
-// src/pages/TestReduxCards.jsx
 import React, { useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import {
@@ -22,7 +21,7 @@ const TestReduxCards = () => {
         <div style={{ padding: '20px', fontFamily: 'Arial' }}>
             <h2>Redux Cards Demo</h2>
 
-            {/* Danh sách thẻ */}
+            {}
             <div>
                 <h3>Danh sách thẻ:</h3>
                 {cards.length === 0 ? (
@@ -38,7 +37,7 @@ const TestReduxCards = () => {
                 )}
             </div>
 
-            {/* Thêm thẻ mới */}
+            {}
             <div>
                 <h3>Thêm thẻ:</h3>
                 <input
@@ -61,7 +60,7 @@ const TestReduxCards = () => {
                 </button>
             </div>
 
-            {/* Cập nhật thẻ */}
+            {}
             <div>
                 <h3>Cập nhật thẻ:</h3>
                 <input
@@ -85,7 +84,7 @@ const TestReduxCards = () => {
                 </button>
             </div>
 
-            {/* Xóa thẻ */}
+            {}
             <div>
                 <h3>Xóa thẻ:</h3>
                 <input
@@ -99,7 +98,7 @@ const TestReduxCards = () => {
                 </button>
             </div>
 
-            {/* Xóa tất cả thẻ */}
+            {}
             <div>
                 <h3>Clear tất cả thẻ:</h3>
                 <button onClick={() => dispatch(clearCards())}>Clear</button>

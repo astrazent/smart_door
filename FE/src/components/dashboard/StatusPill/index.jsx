@@ -5,23 +5,22 @@ const ActionStatusPill = ({ action }) => {
 
     const statusStyles = {
         OPEN: {
-            label: 'Mở cửa',
+            label: 'OPENED',
             classes: `${baseClasses} bg-green-500`,
         },
         CLOSED: {
-            label: 'Đóng cửa',
+            label: 'CLOSED',
             classes: `${baseClasses} bg-blue-500`,
         },
         FAILED: {
-            label: 'Thất bại',
+            label: 'FAILED',
             classes: `${baseClasses} bg-red-500`,
         },
     }
 
-    // Mặc định cho các trạng thái không xác định
     const defaultStatus = {
         label: action,
-        classes: `${baseClasses} bg-gray-400`,
+        classes: `${baseClasses} bg-yellow-500`,
     }
 
     const style = statusStyles[action] || defaultStatus

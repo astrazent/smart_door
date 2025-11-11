@@ -19,12 +19,11 @@ const login = async (req, res, next) => {
         const { user, accessToken } = await userService.loginService(
             identifier,
             password
-        )
-
+        )  
         res.cookie('access_token', accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge: 60 * 60 * 1000,
         })
 
@@ -32,6 +31,18 @@ const login = async (req, res, next) => {
             message: 'Đăng nhập thành công',
             user,
         })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const validateToken = (req, res, next) => {
+    try {
+        const userPayload = {
+            username: req.user.username,
+            role: req.user.role,
+        }
+        res.status(StatusCodes.OK).json(userPayload)
     } catch (error) {
         next(error)
     }
@@ -120,6 +131,7 @@ const deleteUser = async (req, res, next) => {
 export const userController = {
     register,
     login,
+    validateToken,
     logout,
     createUser,
     listUsers,

@@ -25,7 +25,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
     user: userReducer,
     cards: cardReducer,
-    doors: doorReducer,
+    door: doorReducer,
     history: historyReducer,
 })
 

@@ -1,18 +1,13 @@
-// src/components/CardList.jsx
-
 import React from 'react'
-// 1. Import hook mới
+
 import { useListCardUsers } from '~/hooks/useCard'
 import { FaIdCard, FaSpinner, FaUserCircle } from 'react-icons/fa'
 
 const CardList = () => {
-    // 2. Gọi hook mới
     const { data: response, isLoading, isError, error } = useListCardUsers()
 
-    // Trích xuất dữ liệu, giữ nguyên logic cũ
     const cards = response?.data || []
 
-    // Phần xử lý isLoading và isError được giữ nguyên vì đã rất tốt
     if (isLoading) {
         return (
             <div className="bg-white p-6 rounded-lg shadow-md flex items-center justify-center h-64">

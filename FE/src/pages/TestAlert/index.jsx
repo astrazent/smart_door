@@ -1,76 +1,42 @@
 import React from 'react'
-import { useAlert } from '~/contexts/AlertContext'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
-const TestAlert = () => {
-    const { showAlert } = useAlert()
-
-    const handleSuccess = () => {
-        // Cú pháp: showAlert(message, { type: '...', duration: ... })
-        showAlert('Sản phẩm đã được thêm vào Giỏ hàng', { type: 'success' })
-    }
-
-    const handleError = () => {
-        showAlert('Không thể kết nối tới máy chủ', {
-            type: 'error',
-            duration: 3000,
-        })
-    }
-
-    const handleInfo = () => {
-        showAlert('Đơn hàng sẽ được giao trong 3-5 ngày', {
-            type: 'info',
-            duration: 2500,
-        })
-    }
+export default function TestAlert() {
+    const showSuccess = () => toast.success('Đây là thông báo SUCCESS!')
+    const showError = () => toast.error('Đây là thông báo ERROR!')
+    const showInfo = () => toast.info('Đây là thông báo INFO!')
+    const showWarning = () => toast.warn('Đây là thông báo WARNING!')
 
     return (
-        <div style={{ display: 'flex', gap: '20px' }}>
-            <button
-                onClick={handleSuccess}
-                style={{
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    padding: '12px 24px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '16px',
-                    cursor: 'pointer',
-                }}
-            >
-                Thêm (Thành công)
-            </button>
-
-            <button
-                onClick={handleError}
-                style={{
-                    backgroundColor: '#dc3545',
-                    color: 'white',
-                    padding: '12px 24px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '16px',
-                    cursor: 'pointer',
-                }}
-            >
-                Test (Thất bại)
-            </button>
-
-            <button
-                onClick={handleInfo}
-                style={{
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    padding: '12px 24px',
-                    border: 'none',
-                    borderRadius: '4px',
-                    fontSize: '16px',
-                    cursor: 'pointer',
-                }}
-            >
-                Test (Thông tin)
-            </button>
+        <div className="p-8 flex flex-col gap-4">
+            <h2 className="text-xl font-bold">Test Alert</h2>
+            <div className="flex gap-4 flex-wrap">
+                <button
+                    onClick={showSuccess}
+                    className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                >
+                    Success
+                </button>
+                <button
+                    onClick={showError}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                >
+                    Error
+                </button>
+                <button
+                    onClick={showInfo}
+                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                >
+                    Info
+                </button>
+                <button
+                    onClick={showWarning}
+                    className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+                >
+                    Warning
+                </button>
+            </div>
         </div>
     )
 }
-
-export default TestAlert

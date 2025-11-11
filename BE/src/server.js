@@ -37,7 +37,7 @@ const START_SERVER = async () => {
         app.use(cookieParser())
         app.use(express.json())
         app.use(express.urlencoded({ extended: true }))
-
+        
         app.use('/v1', APIs_V1)
         app.use('/v2', APIs_V2)
         app.use(errorHandlingMiddleware)
