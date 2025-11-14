@@ -8,16 +8,16 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-const char *ssid = "Phan Nguyen 5G";
-const char *password = "-p(x2)log(p(x2))";
+const char *ssid = "Redmi 10C";
+const char *password = "Duc23102003";
 
-const char *backendApiUrl = "http://192.168.1.199:8027/v1/esp/get-card-esp";
-const char *backendApiCheckInUrl = "http://192.168.1.199:8027/v1/esp/check-in-esp";
-const char *backendApiCheckOutUrl = "http://192.168.1.199:8027/v1/esp/check-out-esp";
-const char *backendApiCheckInInvalidUrl = "http://192.168.1.199:8027/v1/esp/check-in-invalid-esp";
-const char *backendApiCheckOutInvalidUrl = "http://192.168.1.199:8027/v1/esp/check-out-invalid-esp";
-const char *backendApiGoOutUrl = "http://192.168.1.199:8027/v1/esp/go-out-door-esp";
-const char *backendApiDoorClosedUrl = "http://192.168.1.199:8027/v1/esp/door-closed-esp";
+const char *backendApiUrl = "http://10.53.207.67:8027/v1/esp/get-card-esp";
+const char *backendApiCheckInUrl = "http://10.53.207.67:8027/v1/esp/check-in-esp";
+const char *backendApiCheckOutUrl = "http://10.53.207.67:8027/v1/esp/check-out-esp";
+const char *backendApiCheckInInvalidUrl = "http://10.53.207.67:8027/v1/esp/check-in-invalid-esp";
+const char *backendApiCheckOutInvalidUrl = "http://10.53.207.67:8027/v1/esp/check-out-invalid-esp";
+const char *backendApiGoOutUrl = "http://10.53.207.67:8027/v1/esp/go-out-door-esp";
+const char *backendApiDoorClosedUrl = "http://10.53.207.67:8027/v1/esp/door-closed-esp";
 
 #define SS_PIN 5
 #define RST_PIN 15

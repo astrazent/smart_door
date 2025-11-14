@@ -25,7 +25,6 @@ const START_SERVER = async () => {
         console.log('Server chạy trên port:', port)
 
         const app = express()
-
         app.use(
             cors({
                 origin: env.FE_BASE_URL,

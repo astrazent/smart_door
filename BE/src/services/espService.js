@@ -13,6 +13,7 @@ const sendRequestToDoorServer = async (server_domain, action, payload = {}) => {
     }
     
     const url = `http://${server_domain}/api/${action}`
+    console.log(url);
     try {
         const res = await axios.get(url, payload, { timeout: 5000 }) 
         return res.data
